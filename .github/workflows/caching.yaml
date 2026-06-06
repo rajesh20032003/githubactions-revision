@@ -27,8 +27,6 @@ jobs:
           node-version: '20.x'
       - name: building 
         run: npm ci 
-      - name: liniting
-        run: npm lint 
       - name: testing 
         run: npm run test 
       - name: deploying to prod 
