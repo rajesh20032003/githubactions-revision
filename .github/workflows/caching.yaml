@@ -25,6 +25,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+          cache: npm
+          cache-dependency-path: caching-react/react-app/package-lock.json
       - name: cache check 
         uses: actions/cache@v4
         if: inputs.cache-use
@@ -33,7 +35,6 @@ jobs:
           path: caching-react/react-app/node_modules
           key: deps-node-modules-${{ hashFiles('caching-react/react-app/package-lock.json')}}
       - name: building 
-        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci 
       - name: testing 
         run: npm run test 
