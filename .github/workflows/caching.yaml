@@ -15,8 +15,21 @@ jobs:
   #deploy to prod 
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+       working-directory: caching-react/react-app 
     steps:
       - name: checkout the code 
         uses: actions/checkout@v4
-      - name: printing the dir 
-        run: ls -la 
+      - name: setting up the node 
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: building 
+        run: npm ci 
+      - name: liniting
+        run: npm lint 
+      - name: testing 
+        run: npm run test 
+      - name: deploying to prod 
+        run: echo "deploying to prod ....."
