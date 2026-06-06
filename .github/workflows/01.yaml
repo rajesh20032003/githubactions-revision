@@ -34,11 +34,13 @@ jobs:
     steps:
       - run: echo " the message from build step is ${{ needs.build.outputs.name }} "
   version-print:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
+    needs: build 
     steps:
      - run: echo " the verion we are building is ${{ inputs.version-pick }}"
   deploy-prod:
     runs-on: ubuntu-latest
+    needs: deploy
     if: ${{ !inputs.dry-run }}
     steps:
       - run: echo "deploying to prod....in ${{inputs.platform }}"
