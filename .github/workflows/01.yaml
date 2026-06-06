@@ -2,8 +2,24 @@ name: first workflow
 
 on: 
  workflow_dispatch:
-
-
+  inputs:
+    dry-run:
+      type: boolean
+      description: skip deployment 
+      default: false
+      required: false 
+    version-pick:
+      type: choice 
+      description: pick the version to deploy
+      required: true 
+      options:
+        - v1
+        - v2
+      default: v2
+    platform:
+      type: environment 
+      description: chose the environment to deploy 
+    
 jobs:
   build:
     runs-on: ubuntu-latest 
@@ -17,7 +33,12 @@ jobs:
     needs: build
     steps:
       - run: echo " the message from build step is ${{ needs.build.outputs.name }} "
-  final:
-    runs-on: ubuntu-latest
+  version-print:
+    runs-on: ubuntu-latest 
     steps:
-      - run: echo " i will build always"
+     - run: echo " the verion we are building is ${{ inputs.version-pick }}"
+  deploy-prod:
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.dry-run }}
+    steps:
+      - run: echo "deploying to prod....in ${{inputs.platform }}"
