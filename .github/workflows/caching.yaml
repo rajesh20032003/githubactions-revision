@@ -1,0 +1,22 @@
+name: caching
+
+on: 
+  workflow_dispatch:
+    inputs:
+      cache-use:
+        type: boolean
+        description: use cache or not 
+        default: true 
+        
+jobs:
+  #checkout the code 
+  #install dependencies
+  #unit , linting ,building 
+  #deploy to prod 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout the code 
+        uses: actions/checkout@v4
+      - name: printing the dir 
+        run: ls -la 
