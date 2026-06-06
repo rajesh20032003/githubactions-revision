@@ -1,0 +1,23 @@
+name: first workflow 
+
+on: 
+ workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest 
+    outputs:
+      name: ${{ steps.step1.outputs.message }}
+    steps:
+      - id: step1
+        run: echo "message=hello da rajesh" >> "$GITHUB_OUTPUT"
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - run: echo " the message from build step is ${{ needs.build.outputs.name }} "
+  final:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo " i will build always"
