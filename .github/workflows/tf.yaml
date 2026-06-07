@@ -23,7 +23,37 @@ permissions:
   pull-requests: write 
 
 jobs:
-
+  security-checks:
+    name: security-checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout 
+        uses: actions/checkout@v4 
+      - name: gitleaks check
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: checkov scan
+        uses: bridgeccrewio/checkov-action@master
+        with:
+          directory: .
+          framework: terraform
+          output_format: sarif
+          output_fail_path: reports/checkov.sarif
+      - name: upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov-report 
+          path: reports/checkov.sarif
+          soft_fail: false
+        continue-on-error: true  
+      - name: trivy terraform scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: CRITICAL
+          exit-code: 1
   terraform-plan:
     name: tf-plan
     runs-on: ubuntu-latest
@@ -138,7 +168,7 @@ jobs:
       - name: terraform apply 
         if: |
           (github.ref == 'refs/heads/main' && github.event_name == 'push') || 
-          (github.event_name == 'workflow_dispatch' && inputs.choose-environment == 'staging' )
+          (github.event_name == 'workflow_dispatch' )
         run: terraform apply tfplan
       - name: terraform output 
         run: terraform output -json > tf-outputs.json
