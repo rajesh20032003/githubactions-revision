@@ -23,32 +23,27 @@ permissions:
   pull-requests: write 
 
 jobs:
-  terraform-stagging:
-    name: terraform dev
+
+  terraform-plan:
+    name: tf-plan
     runs-on: ubuntu-latest
-    if: ${{!inputs.tf-destroy}}
-    environment: ${{inputs.choose-environment }} 
     defaults:
       run:
         working-directory: .
     steps:
-      - name: echo enviroment
-        run: echo ${{inputs.choose-environment}}
-      - name: checkout
+      - name: checkout 
         uses: actions/checkout@v4
-      - name: configure aws creds 
+      - name: configure-aws-creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume:  ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
           role-session-name: GithubActions-Terraform-${{ github.run_id }}
-      - name: setup terraform 
-        uses: hashicorp/setup-terraform@v3
+      - name: setup tf 
+        uses: hashicorp/setup-terraform@3
         with:
           terraform_version: 1.7.0
-      - name: check tf version
-        run: terraform version 
-      - name: terraform init 
+      - name: tf init 
         run: terraform init 
       - name: terraform fmt check 
         run: terraform fmt -check -recursive 
@@ -57,8 +52,13 @@ jobs:
       - name: terraform plan
         id: plan
         run: |
-         terraform plan -out=tfplan -no-color 2>&1 | tee plan_output.txt 
-        continue-on-error: true 
+          terraform plan -out=tfplan -no-color 2>&1 | tee plan_output.txt 
+        continue-on-error: true
+      - name: upload plan artifact
+        uses:  actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: tfplan
       - name: Post plan to PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -86,19 +86,53 @@ jobs:
               \`\`\`
               `
             });
+          
+  terraform-apply:
+    name: terraform-${{inputs.choose-environment}}
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    if: ${{!inputs.tf-destroy}}
+    environment: ${{inputs.choose-environment }} 
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: echo enviroment
+        run: echo ${{inputs.choose-environment}}
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: configure aws creds 
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: GithubActions-Terraform-${{ github.run_id }}
+      - name: setup terraform 
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+      - name: check tf version
+        run: terraform version 
+      - name: terraform init 
+        run: terraform init 
       - name: Debug
         run: |
           echo "event=${{ github.event_name }}"
           echo "ref=${{ github.ref }}"
+      - name: tf plan download
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
       - name: terraform apply 
         if: |
           (github.ref == 'refs/heads/main' && github.event_name == 'push') || 
           (github.event_name == 'workflow_dispatch' && inputs.choose-environment == 'staging' )
-        run: terraform apply --auto-approve 
+        run: terraform apply tfplan --auto-approve 
 
   terraform-destroy:
     name: terraform-destroy
     runs-on: ubuntu-latest 
+    environment: ${{inputs.choose-environment }} 
     if: | 
       github.event_name == 'workflow_dispatch' && inputs.tf-destroy
     defaults:
@@ -119,6 +153,10 @@ jobs:
           terraform_version: 1.7.0
       - name: tf init 
         run: terraform init 
+      - name: tf plan download
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
       - name: tf destroy
-        run: terraform destroy --auto-approve 
+        run: terraform destroy tfplan --auto-approve 
 
