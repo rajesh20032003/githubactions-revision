@@ -81,4 +81,9 @@ jobs:
               \`\`\`
               `
             });
+      - name: terraform apply 
+        if: |
+          (github.ref == 'refs/head/main' && github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.choose-environment == 'stagging' )
+        run: terraform apply --auto-approve 
 
