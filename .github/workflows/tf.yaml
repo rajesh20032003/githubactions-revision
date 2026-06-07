@@ -127,7 +127,7 @@ jobs:
         if: |
           (github.ref == 'refs/heads/main' && github.event_name == 'push') || 
           (github.event_name == 'workflow_dispatch' && inputs.choose-environment == 'staging' )
-        run: terraform apply tfplan --auto-approve 
+        run: terraform apply tfplan
 
   terraform-destroy:
     name: terraform-destroy
@@ -158,5 +158,5 @@ jobs:
         with:
           name: tfplan
       - name: tf destroy
-        run: terraform destroy tfplan --auto-approve 
+        run: terraform destroy tfplan 
 
