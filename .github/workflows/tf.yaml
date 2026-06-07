@@ -12,7 +12,7 @@ on:
       choose-environment:
         type: environment
         description: choose which environment to deploy 
-        default: stagging 
+        default: staging 
       tf-destroy:
         type: boolean
         description: do you need to destroy the pipeline? 
@@ -60,6 +60,7 @@ jobs:
         run: terraform plan -destroy -out=tfplan-destroy
         continue-on-error: true
       - name: upload creation plan artifact
+        if: ${{!inputs.tf-destroy}}
         uses:  actions/upload-artifact@v4
         with:
           name: tfplan
@@ -101,7 +102,7 @@ jobs:
     name: terraform-${{inputs.choose-environment}}
     needs: terraform-plan
     runs-on: ubuntu-latest
-    if: ${{!inputs.tf-destroy}}
+    if: ${{!inputs.tf-destroy || !inputs.dry-run}}
     environment: ${{inputs.choose-environment }} 
     defaults:
       run:
@@ -145,7 +146,7 @@ jobs:
     needs: terraform-plan
     environment: ${{inputs.choose-environment }} 
     if: | 
-      github.event_name == 'workflow_dispatch' && inputs.tf-destroy
+      github.event_name == 'workflow_dispatch' && inputs.tf-destroy || !inputs.dry-run
     defaults:
       run:
         working-directory: .
