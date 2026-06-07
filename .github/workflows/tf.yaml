@@ -27,6 +27,8 @@ jobs:
       run:
         working-directory: .
     steps:
+      - name: echo enviroment
+        run: echo ${{inputs.choose-environment}}
       - name: checkout
         uses: actions/checkout@v4
       - name: configure aws creds 
@@ -35,8 +37,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
           role-session-name: GithubActions-Terraform-${{ github.run_id }}
-      - name: verify aws identity
-        run: aws sts get-caller-identity
       - name: setup terraform 
         uses: hashicorp/setup-terraform@v3
         with:
@@ -81,9 +81,13 @@ jobs:
               \`\`\`
               `
             });
+      - name: Debug
+        run: |
+          echo "event=${{ github.event_name }}"
+          echo "ref=${{ github.ref }}"
       - name: terraform apply 
         if: |
-          (github.ref == 'refs/head/main' && github.event_name == 'push') || 
-          (github.event_name == 'workflow_dispatch' && inputs.choose-environment == 'stagging' )
+          (github.ref == 'refs/heads/main' && github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.choose-environment == 'staging' )
         run: terraform apply --auto-approve 
 
