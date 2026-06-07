@@ -46,7 +46,6 @@ jobs:
         with:
           name: checkov-report 
           path: reports/checkov.sarif
-          soft_fail: true
         continue-on-error: true  
       - name: trivy terraform scan
         uses: aquasecurity/trivy-action@master
@@ -103,6 +102,8 @@ jobs:
         with:
           name: tfplan-destroy
           path: tfplan-destroy
+      - name: checking dirs
+        run: ls -la
       - name: Post plan to PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
