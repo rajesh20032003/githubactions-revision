@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project demonstrates a production-style Terraform CI/CD pipeline built using GitHub Actions and AWS OIDC authentication. The pipeline follows Infrastructure as Code (IaC) best practices by implementing security scanning, plan/apply separation, environment approvals, artifact promotion, and automated infrastructure deployment.
+This project demonstrates a production-style Terraform CI/CD pipeline built using GitHub Actions and AWS OIDC authentication. The pipeline follows Infrastructure as Code (IaC) best practices by implementing security scanning, plan/apply separation, environment approvals, artifact promotion, and automated infrastructure deployment
 
 The objective of this project is to create a secure, scalable, and reusable deployment workflow that can be used across multiple environments such as staging and production.
 
