@@ -102,7 +102,7 @@ jobs:
     name: terraform-${{inputs.choose-environment}}
     needs: terraform-plan
     runs-on: ubuntu-latest
-    if: ${{!inputs.tf-destroy || !inputs.dry-run}}
+    if: ${{!inputs.tf-destroy && !inputs.dry-run}}
     environment: ${{inputs.choose-environment }} 
     defaults:
       run:
