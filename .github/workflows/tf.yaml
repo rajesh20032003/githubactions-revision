@@ -66,6 +66,7 @@ jobs:
           name: tfplan
           path: tfplan
       - name: upload  destroy plan artifact
+        if: inputs.tf-destroy
         uses:  actions/upload-artifact@v4
         with:
           name: tfplan-destroy
@@ -139,6 +140,14 @@ jobs:
           (github.ref == 'refs/heads/main' && github.event_name == 'push') || 
           (github.event_name == 'workflow_dispatch' && inputs.choose-environment == 'staging' )
         run: terraform apply tfplan
+      - name: terraform output 
+        run: terraform output -json > tf-outputs.json
+      - name: upload output 
+        uses: actions/upload-artifact@v4
+        with:
+          name: infra-output-${{inputs.choose-environment}}
+          path:  tf-outputs.json
+          retention-days: 14 
 
   terraform-destroy:
     name: terraform-destroy
@@ -146,7 +155,7 @@ jobs:
     needs: terraform-plan
     environment: ${{inputs.choose-environment }} 
     if: | 
-      github.event_name == 'workflow_dispatch' && inputs.tf-destroy || !inputs.dry-run
+      github.event_name == 'workflow_dispatch' && inputs.tf-destroy
     defaults:
       run:
         working-directory: .
