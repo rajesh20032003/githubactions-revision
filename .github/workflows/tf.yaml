@@ -34,7 +34,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: checkov scan
-        uses: bridgeccrewio/checkov-action@master
+        uses: bridgecrewio/checkov-action@master
         with:
           directory: .
           framework: terraform
