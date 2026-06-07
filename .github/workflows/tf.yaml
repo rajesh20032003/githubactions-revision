@@ -50,7 +50,7 @@ jobs:
       - name: terraform validate
         run: terraform validate 
       - name: terraform plan
-        if: inputs.tf-destroy == 'false'
+        if: ${{!inputs.tf-destroy}}
         id: plan
         run: |
           terraform plan -out=tfplan -no-color 2>&1 | tee plan_output.txt 
