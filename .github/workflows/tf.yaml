@@ -13,6 +13,10 @@ on:
         type: environment
         description: choose which environment to deploy 
         default: stagging 
+      tf-destroy:
+        type: boolean
+        description: do you need to destroy the pipeline? 
+        default: false 
 permissions:
   id-token: write
   contents: read
@@ -22,6 +26,7 @@ jobs:
   terraform-stagging:
     name: terraform dev
     runs-on: ubuntu-latest
+    if: ${{!inputs.tf-destroy}}
     environment: ${{inputs.choose-environment }} 
     defaults:
       run:
@@ -90,4 +95,30 @@ jobs:
           (github.ref == 'refs/heads/main' && github.event_name == 'push') || 
           (github.event_name == 'workflow_dispatch' && inputs.choose-environment == 'staging' )
         run: terraform apply --auto-approve 
+
+  terraform-destroy:
+    name: terraform-destroy
+    runs-on: ubuntu-latest 
+    if: | 
+      github.event_name == 'workflow_dispatch' && inputs.tf-destroy
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: checkout 
+        uses: actions/checkout@v4
+      - name: config aws creds 
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{secrets.AWS_ROLE_ARN}}
+          aws-region: ${{secrets.AWS_REGION}}
+          role-session-name: GithubActions-Terraform-${{ github.run_id }}
+      - name: setup terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+      - name: tf init 
+        run: terraform init 
+      - name: tf destroy
+        run: terraform destroy --auto-approve 
 
